@@ -13,7 +13,7 @@ font = pygame.font.Font(None, 48)
 
 # --- Renkler ---
 BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
+WHITE = (255, 0, 0)
 
 # --- Oyun değişkenleri ---
 notes = 0
