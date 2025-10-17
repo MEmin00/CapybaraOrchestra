@@ -40,92 +40,24 @@ FONT = pygame.font.Font(None, 36)
 SMALL = pygame.font.Font(None, 24)
 MINI = pygame.font.Font(None, 20)
 
-# -------- SAVE / LOAD ----------
-SAVE_FILE = "save.json"
-def default_state():
-    return {
-        "notes": 0,
-        "click_power": 1,
-        "idle_per_sec": 0,
-        "level": 1,
-        "purchased_names": [],
-        "click_multiplier": 1.0
-    }
+# --- Renkler ---
+BLACK = (0, 0, 0)
+WHITE = (255, 0, 0)
 
-def save_game(state: Dict):
-    try:
-        with open(SAVE_FILE, "w", encoding="utf-8") as f:
-            json.dump(state, f, ensure_ascii=False, indent=2)
-        print("[SAVE] Kaydedildi.")
-    except Exception as e:
-        print("[SAVE ERROR]", e)
+# --- Oyun değişkenleri ---
+notes = 0
+nota_artis = 1
+flute_clicked = False
 
-def load_game():
-    if os.path.exists(SAVE_FILE):
-        try:
-            with open(SAVE_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            base = default_state()
-            for k,v in base.items():
-                if k not in data:
-                    data[k] = v
-            print("[LOAD] Yüklendi.")
-            return data
-        except Exception as e:
-            print("[LOAD ERROR]", e)
-            return default_state()
-    else:
-        print("[LOAD] Kayıt yok, varsayılan.")
-        return default_state()
+# --- Görseller ---
+background_img = pygame.image.load("images/scane.png").convert()
+background_img = pygame.transform.scale(background_img, (WIDTH, HEIGHT))
 
-def reset_save():
-    try:
-        if os.path.exists(SAVE_FILE):
-            os.remove(SAVE_FILE)
-            print("[RESET] Save silindi.")
-        else:
-            print("[RESET] Save yok.")
-    except Exception as e:
-        print("[RESET ERROR]", e)
-
-# -------- SAFE IMAGE LOADER ----------
-def safe_load(path: str, size=None, alpha=True, fallback_color=(120,120,120)):
-    try:
-        surf = pygame.image.load(path)
-        surf = surf.convert_alpha() if alpha else surf.convert()
-        if size:
-            surf = pygame.transform.scale(surf, size)
-        # print(f"[OK] Loaded: {path}")
-        return surf
-    except Exception as e:
-        print(f"[WARN] Could not load '{path}': {e}")
-        surf = pygame.Surface(size if size else (100,100), pygame.SRCALPHA)
-        surf.fill(fallback_color)
-        return surf
-
-# -------- LOAD GLOBAL STATE ----------
-state = load_game()
-notes = state["notes"]
-click_power = state["click_power"]
-idle_per_sec = state["idle_per_sec"]
-level = state["level"]
-purchased_names: List[str] = state["purchased_names"]
-click_multiplier = state.get("click_multiplier", 1.0)
-
-# -------- ASSETS ----------
-# background
-background = safe_load("images/scane.png", (WIDTH, HEIGHT), alpha=False, fallback_color=(20,20,40))
-
-# flute (sabit)
-flute_img = safe_load("images/characters/flute.png", (200,150), alpha=True, fallback_color=(150,150,200))
-flute_pressed_img = safe_load("images/characters/flute1.png", (200,150), alpha=True, fallback_color=(180,150,200))
-flute_rect = flute_img.get_rect(center=(WIDTH//2 - 100, int(HEIGHT/1.4)))
-
-# guitar (single sprite)
-guitar_img = safe_load("images/characters/gitar.png", (160,140), alpha=True, fallback_color=(140,120,80))
-# drum frames
-davul_frame_1 = safe_load("images/characters/davul.png", (160,140), alpha=True, fallback_color=(120,80,140))
-davul_frame_2 = safe_load("images/characters/davul_2.png", (160,140), alpha=True, fallback_color=(120,80,140))
+flute_img = pygame.image.load("images/characters/flute.png").convert_alpha()
+flute1_img = pygame.image.load("images/characters/flute1.png").convert_alpha()
+flute_img = pygame.transform.scale(flute_img, (200, 150))
+flute1_img = pygame.transform.scale(flute1_img, (200, 150))
+button_rect = flute_img.get_rect(center=(WIDTH // 2, HEIGHT // 1.4))
 
 # music (safe)
 try:
