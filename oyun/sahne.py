@@ -14,7 +14,7 @@ class Sahne:
         self.genislik = genislik
         self.yukseklik = yukseklik
         self.oyunVerileri = oyunVerileri
-        self.kayan_metinler = kayan_metinler  # 🌟 Yeni eklendi
+        self.kayan_metinler = kayan_metinler  # 🌟
 
         # 🎨 Renkler
         self.arkaRenk = (15, 18, 45)
@@ -30,7 +30,8 @@ class Sahne:
         base_path = os.path.dirname(os.path.dirname(__file__))
         self.capiNormalYolu = os.path.join(base_path, "varliklar", "capibaralar", "flute.png")
         self.capiTiklamaYolu = os.path.join(base_path, "varliklar", "capibaralar", "flute1.png")
-        self.muzik_yolu = os.path.join(base_path, "music", "flute.mp3")
+        # müzik yolu sadece bilgi amaçlı tutulabilir
+        self.muzik_yolu = os.path.join(base_path, "varliklar", "ses", "flute.mp3")
 
         # 🔹 Görseller
         self.capiResimNormal = pygame.image.load(self.capiNormalYolu).convert_alpha()
@@ -54,14 +55,9 @@ class Sahne:
         self.duraklatildi = False
         self.sesSeviyesi = 0.5
 
-        # 🔹 Ses sistemi
-        pygame.mixer.init()
-        pygame.mixer.music.set_volume(self.sesSeviyesi)
-
         # 🔹 Zamanlayıcı değişkenleri
-        self.sonTiklamaZamani = 0
-        self.muzikCalıyor = False
-        self.animasyonBaslamaZamani = 0
+        self.sonTiklamaZamani = 0.0
+        self.animasyonBaslamaZamani = 0.0
         self.animasyonSuresi = 0.3
 
         # 🔹 Menü ve slider
@@ -113,6 +109,8 @@ class Sahne:
                     if self.capiRect.collidepoint(event.pos):
                         kazanc = self.oyunVerileri["tiklamaGucu"]
                         self.oyunVerileri["notalar"] += kazanc
+                        # son tıklama zamanı burada global oyunVerileri'ye yazılsın
+                        self.oyunVerileri["sonTiklamaZamani"] = simdi
                         self.sonTiklamaZamani = simdi
                         self.animasyonBaslamaZamani = simdi
                         self.capiResim = self.capiResimTiklama
@@ -120,14 +118,8 @@ class Sahne:
                         # 🌟 Kayan yazı ekle
                         self.kayan_metinler.append(KayanMetin(f"+{kazanc}", event.pos))
 
-                        # 🎵 Müzik başlat
-                        if not self.muzikCalıyor:
-                            pygame.mixer.music.load(self.muzik_yolu)
-                            pygame.mixer.music.play(-1)
-                            self.muzikCalıyor = True
-
             else:
-                # 🎚️ Ses kaydırıcı
+                # Slider ve menü butonları (aynı kaldı)
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if self.sliderTopRect.collidepoint(event.pos):
                         self.surukleniyor = True
@@ -136,9 +128,13 @@ class Sahne:
                 elif event.type == pygame.MOUSEMOTION and self.surukleniyor:
                     self.sesSeviyesi = max(0, min(1, (event.pos[0] - self.sliderRect.x) / self.slider_genislik))
                     self.sliderTopRect.x = self.sliderRect.x + int(self.sesSeviyesi * self.slider_genislik) - 10
-                    pygame.mixer.music.set_volume(self.sesSeviyesi)
+                    # dikkat: müziği main.py kontrol ettiğinden mixer çağrıları burada yapılmasın
+                    try:
+                        if pygame.mixer.get_init():
+                            pygame.mixer.music.set_volume(self.sesSeviyesi)
+                    except:
+                        pass
 
-                # Menü butonları
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if self.butDevam.collidepoint(event.pos):
                         self.duraklatildi = False
@@ -150,11 +146,6 @@ class Sahne:
                         pygame.quit()
                         sys.exit()
 
-        # 🕒 1.5 sn tıklanmazsa müzik durdur
-        if self.muzikCalıyor and (simdi - self.sonTiklamaZamani > 1.5):
-            pygame.mixer.music.stop()
-            self.muzikCalıyor = False
-
         # 🎬 0.3 sn sonra capybara'yı normale döndür
         if simdi - self.animasyonBaslamaZamani > self.animasyonSuresi:
             self.capiResim = self.capiResimNormal
@@ -165,6 +156,7 @@ class Sahne:
             if metin.bitti:
                 self.kayan_metinler.remove(metin)
 
+        # çizimler
         self.ciz()
         if self.duraklatildi:
             self.cizDuraklatmaMenusu()
@@ -186,26 +178,16 @@ class Sahne:
         yazi_rect = yazi.get_rect(center=self.upgradeRect.center)
         self.pencere.blit(yazi, yazi_rect)
 
-        # 🌟 Kayan metinleri çiz
+        # Kayan metinler
         for metin in self.kayan_metinler:
             metin.ciz(self.pencere)
 
     def cizDuraklatmaMenusu(self):
-        if not hasattr(self, "fadeAlpha"):
-            self.fadeAlpha = 0
-            self.fadeIn = True
-            self.fadeOut = False
-
-        if self.fadeIn and self.fadeAlpha < 200:
-            self.fadeAlpha += 10
-        elif self.fadeOut and self.fadeAlpha > 0:
-            self.fadeAlpha -= 10
-
         ekran_kopya = pygame.Surface((self.genislik, self.yukseklik))
         ekran_kopya.blit(self.pencere, (0, 0))
         blur_surface = pygame.transform.smoothscale(ekran_kopya, (self.genislik // 8, self.yukseklik // 8))
         blur_surface = pygame.transform.smoothscale(blur_surface, (self.genislik, self.yukseklik))
-        blur_surface.set_alpha(self.fadeAlpha)
+        blur_surface.set_alpha(180)
         self.pencere.blit(blur_surface, (0, 0))
 
         pygame.draw.rect(self.pencere, (25, 25, 40), self.menuRect, border_radius=20)
@@ -213,36 +195,21 @@ class Sahne:
 
         baslikYazi = "Oyun Duraklatıldı"
         baslik = self.yaziBaslik.render(baslikYazi, True, (255, 255, 255))
-        baslikGolge = self.yaziBaslik.render(baslikYazi, True, (60, 60, 100))
-        baslikX = self.menuRect.centerx - baslik.get_width() // 2
-        baslikY = self.menuRect.y + 30
-        self.pencere.blit(baslikGolge, (baslikX + 3, baslikY + 3))
-        self.pencere.blit(baslik, (baslikX, baslikY))
+        self.pencere.blit(baslik, (self.menuRect.centerx - baslik.get_width() // 2, self.menuRect.y + 30))
 
         mousePos = pygame.mouse.get_pos()
         mouseDown = pygame.mouse.get_pressed()[0]
 
+        # Slider çizimi
         topX = self.sliderRect.x + int(self.sesSeviyesi * self.sliderRect.width)
         topY = self.sliderRect.centery
-        topRadius = 9
-
-        if mouseDown and self.sliderRect.collidepoint(mousePos):
-            relX = mousePos[0] - self.sliderRect.x
-            self.sesSeviyesi = max(0, min(1, relX / self.sliderRect.width))
-            pygame.mixer.music.set_volume(self.sesSeviyesi)
-
-        if (mousePos[0] - topX) ** 2 + (mousePos[1] - topY) ** 2 <= topRadius ** 2 * 2:
-            topRenk = (220, 220, 255)
-            pygame.draw.circle(self.pencere, (160, 160, 255), (topX, topY), 13)
-        else:
-            topRenk = (180, 180, 255)
-
         pygame.draw.rect(self.pencere, (90, 90, 160), self.sliderRect, border_radius=10)
-        pygame.draw.circle(self.pencere, topRenk, (topX, topY), topRadius)
+        pygame.draw.circle(self.pencere, (180, 180, 255), (topX, topY), 9)
 
         sesYazi = self.yaziKucuk.render(f"Ses: %{int(self.sesSeviyesi * 100)}", True, (255, 255, 255))
         self.pencere.blit(sesYazi, (self.sliderRect.centerx - sesYazi.get_width() // 2, self.sliderRect.y - 35))
 
+        # Butonlar
         for yazi, butonRect in [
             ("Devam Et", self.butDevam),
             ("Kaydet", self.butKaydet),
