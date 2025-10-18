@@ -3,6 +3,7 @@ import sys
 from oyun.anaMenu import AnaMenu
 from oyun.sahne import Sahne
 from oyun.upgrade import UpgradeEkrani
+from oyun.kayanMetin import KayanMetin  # 👈 kayan yazı eklendi
 
 pygame.init()
 
@@ -21,9 +22,12 @@ oyunVerileri = {
     "capibaraSayisi": 1,
 }
 
+# --- Kayan metin listesi ---
+kayan_metinler = []
+
 # --- Ekran nesneleri ---
 anaMenu = AnaMenu(pencere, GENISLIK, YUKSEKLIK, oyunVerileri)
-sahne = Sahne(pencere, GENISLIK, YUKSEKLIK, oyunVerileri)
+sahne = Sahne(pencere, GENISLIK, YUKSEKLIK, oyunVerileri, kayan_metinler)
 upgradeEkrani = UpgradeEkrani(pencere, GENISLIK, YUKSEKLIK, oyunVerileri)
 
 aktifEkran = "anaMenu"  # Başlangıç ekranı

@@ -70,11 +70,11 @@ class UpgradeEkrani:
                 return "sahne"
 
             if e.type == pygame.MOUSEBUTTONDOWN:
-                if e.button == 4:  # Yukarı
+                if e.button == 4:  # Yukarı kaydır
                     self.scroll_offset = min(self.scroll_offset + self.scroll_hiz, 0)
-                elif e.button == 5:  # Aşağı
+                elif e.button == 5:  # Aşağı kaydır
                     self.scroll_offset = max(self.scroll_offset - self.scroll_hiz, -self.scroll_max)
-                elif e.button == 1:
+                elif e.button == 1:  # Sol tıklama
                     if self.kapat_buton.collidepoint(e.pos):
                         return "sahne"
                     self.upgradeTiklama(e.pos)
@@ -86,7 +86,7 @@ class UpgradeEkrani:
     # ÇİZİM
     # --------------------------------------------------------
     def ciz(self):
-        # Blur arka plan
+        # Arka plan blur efekti
         ekran_kopya = pygame.Surface((self.GENISLIK, self.YUKSEKLIK))
         ekran_kopya.blit(self.pencere, (0, 0))
         blur = pygame.transform.smoothscale(ekran_kopya, (self.GENISLIK // 8, self.YUKSEKLIK // 8))
@@ -102,11 +102,11 @@ class UpgradeEkrani:
         baslik = self.fontBaslik.render("Yükseltmeler", True, (255, 255, 255))
         self.pencere.blit(baslik, (self.menuRect.centerx - baslik.get_width() // 2, self.menuRect.y + 30))
 
-        # Notalar göstergesi
+        # Toplam notalar
         notaYazi = self.fontKucuk.render(f"Toplam Notalar: {self.oyunVerileri['notalar']}", True, (255, 255, 0))
         self.pencere.blit(notaYazi, (self.menuRect.centerx - notaYazi.get_width() // 2, self.menuRect.y + 100))
 
-        # İçerik alanı
+        # Görünen alan (scroll clipping)
         clip_rect = pygame.Rect(
             self.menuRect.x,
             self.menuRect.y + 150,
@@ -115,17 +115,17 @@ class UpgradeEkrani:
         )
         self.pencere.set_clip(clip_rect)
 
-        # Elemanları çiz
+        # Elemanlar
         self.upgradeRectList = []
         start_y = self.menuRect.y + 160 + self.scroll_offset
 
-        toplam_icerik_yuksekligi = len(self.upgrades) * 160
+        toplam_yukseklik = len([u for u in self.upgrades if not u["alinan"]]) * 160
         gorunen_alan = clip_rect.height
-        self.scroll_max = max(0, toplam_icerik_yuksekligi - gorunen_alan)
+        self.scroll_max = max(0, toplam_yukseklik - gorunen_alan)
 
         for i, u in enumerate(self.upgrades):
             if u["alinan"]:
-                continue  # Satın alınanlar gizlenir
+                continue  # Satın alınanlar listeden gizlenir
 
             rect = pygame.Rect(self.menuRect.x + 80, start_y, self.menuRect.width - 160, 120)
             start_y += 160
@@ -139,8 +139,10 @@ class UpgradeEkrani:
             pygame.draw.rect(self.pencere, renk, rect, border_radius=10)
             pygame.draw.rect(self.pencere, (150, 150, 220), rect, 2, border_radius=10)
 
+            # Görsel
             self.pencere.blit(self.gorseller[i], (rect.x + 15, rect.centery - 60))
 
+            # Yazılar
             isimYazi = self.fontKucuk.render(u["isim"], True, (255, 255, 255))
             fiyatYazi = self.fontKucuk.render(f"{u['fiyat']} nota", True, (255, 255, 0))
             carpimYazi = self.fontKucuk.render(f"x{u['carpan']} üretim", True, (180, 255, 180))
@@ -159,7 +161,7 @@ class UpgradeEkrani:
             pygame.draw.rect(self.pencere, (70, 70, 100), bar_alani, border_radius=4)
 
             oran = abs(self.scroll_offset) / self.scroll_max if self.scroll_max > 0 else 0
-            yukseklik = max(40, clip_rect.height * (gorunen_alan / toplam_icerik_yuksekligi))
+            yukseklik = max(40, clip_rect.height * (gorunen_alan / toplam_yukseklik))
             top_y = clip_rect.y + (clip_rect.height - yukseklik) * oran
 
             pygame.draw.rect(self.pencere, (160, 160, 240),
@@ -184,6 +186,8 @@ class UpgradeEkrani:
                 self.oyunVerileri["notalar"] -= upgrade["fiyat"]
                 self.oyunVerileri["tiklamaGucu"] *= upgrade["carpan"]
                 upgrade["alinan"] = True
+
                 if self.ses_satinal:
                     self.ses_satinal.play()
+
                 print(f"{upgrade['isim']} satın alındı! Yeni güç: {self.oyunVerileri['tiklamaGucu']}")
