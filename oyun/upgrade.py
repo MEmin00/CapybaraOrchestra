@@ -1,107 +1,163 @@
 import pygame
-import sys
 
 class UpgradeEkrani:
-    def __init__(self, pencere, genislik, yukseklik, oyunVerileri):
+    def __init__(self, pencere, GENISLIK, YUKSEKLIK, oyunVerileri):
         self.pencere = pencere
-        self.genislik = genislik
-        self.yukseklik = yukseklik
+        self.GENISLIK = GENISLIK
+        self.YUKSEKLIK = YUKSEKLIK
         self.oyunVerileri = oyunVerileri
 
-        self.renkArkaPlan = (30, 35, 55)
-        self.yaziTipi = pygame.font.SysFont("arial", 30)
-        self.yaziKucuk = pygame.font.SysFont("arial", 22)
+        # Arka plan şeffaflık
+        self.alpha = 150
 
-        # Upgrade listesi (örnek)
-        self.upgradeListesi = [
-            {"isim": "Gitar Capibara", "fiyat": 100, "artis": 1, "alindi": False, "kod": "gitar"},
-            {"isim": "Davul Capibara", "fiyat": 300, "artis": 3, "alindi": False, "kod": "davul"},
-            {"isim": "Tıklama Gücü +1", "fiyat": 50, "artis": 1, "tekrarAlinabilir": True, "kod": "tikGucu"},
-            {"isim": "Sahne Dekor: Işık", "fiyat": 200, "artis": 10, "alindi": False, "kod": "dekorIsik"}  # örnek: dekorlar tıklama kazancına etki eder
+        # Yazı fontları
+        self.fontBaslik = pygame.font.Font(None, 64)
+        self.fontKucuk = pygame.font.Font(None, 36)
+
+        # Menü paneli boyutları
+        self.menuGenislik = int(GENISLIK * 0.66)
+        self.menuYukseklik = int(YUKSEKLIK * 0.66)
+        self.menuRect = pygame.Rect(
+            (GENISLIK - self.menuGenislik) // 2,
+            (YUKSEKLIK - self.menuYukseklik) // 2,
+            self.menuGenislik,
+            self.menuYukseklik
+        )
+
+        # Upgrade seçenekleri
+        self.upgrades = [
+            {"isim": "Gitarcı Capibara", "fiyat": 150, "resim": "varliklar/capibaralar/gitar.png", "carpan": 2},
+            {"isim": "Davulcu Capibara", "fiyat": 300, "resim": "varliklar/capibaralar/davul.png", "carpan": 3},
+            {"isim": "Flütçü Capibara", "fiyat": 500, "resim": "varliklar/capibaralar/flute1.png", "carpan": 5},
+            {"isim": "Kemanlı Capibara", "fiyat": 800, "resim": "varliklar/capibaralar/kemancı.png", "carpan": 8},
+            {"isim": "Trompetçi Capibara", "fiyat": 1200, "resim": "varliklar/capibaralar/trompet.png", "carpan": 10},
+            {"isim": "Saksafoncu Capibara", "fiyat": 1500, "resim": "varliklar/capibaralar/saksofon.png", "carpan": 15},
+            {"isim": "DJ Capibara", "fiyat": 2000, "resim": "varliklar/capibaralar/dj.png", "carpan": 25},
         ]
 
-        # Buton boyutu
-        self.butongen = 600
-        self.butonyuk = 60
-        self.baslangicY = 180
-        self.aralik = 80
+        # Görselleri yükle
+        self.gorseller = []
+        for u in self.upgrades:
+            try:
+                img = pygame.image.load(u["resim"]).convert_alpha()
+                img = pygame.transform.scale(img, (120, 120))
+                self.gorseller.append(img)
+            except Exception as e:
+                print(f"Görsel yüklenemedi: {u['resim']}, hata: {e}")
+                self.gorseller.append(pygame.Surface((120, 120)))
 
-        self.yaziKucuk2 = pygame.font.SysFont("arial", 18)
+        # Kapat butonu
+        self.kapat_buton = pygame.Rect(
+            self.menuRect.right - 45, self.menuRect.y + 15, 30, 30
+        )
 
+        # Scroll
+        self.scroll_offset = 0
+        self.scroll_hiz = 40  # her tekerlek adımı kaç piksel kaydırır
+
+    # --------------------------------------------------------
+    # GÜNCELLE
+    # --------------------------------------------------------
     def guncelle(self, events):
-        for olay in events:
-            if olay.type == pygame.KEYDOWN and olay.key == pygame.K_ESCAPE:
-                return "sahne"  # geri dön
+        for e in events:
+            if e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
+                return "sahne"
 
-            if olay.type == pygame.MOUSEBUTTONDOWN and olay.button == 1:
-                fare = pygame.mouse.get_pos()
-                # Buton tıklamalarını kontrol et
-                for upgrade in self.upgradeListesi:
-                    if "rect" in upgrade and upgrade["rect"].collidepoint(fare):
-                        self.satinAl(upgrade)
+            if e.type == pygame.MOUSEBUTTONDOWN:
+                # Scroll işlemi
+                if e.button == 4:  # Yukarı
+                    self.scroll_offset = min(self.scroll_offset + self.scroll_hiz, 0)
+                elif e.button == 5:  # Aşağı
+                    self.scroll_offset -= self.scroll_hiz
+                elif e.button == 1:
+                    if self.kapat_buton.collidepoint(e.pos):
+                        return "sahne"
+                    self.upgradeTiklama(e.pos)
 
-        # Çizimler
-        self.pencere.fill(self.renkArkaPlan)
-        baslik = self.yaziTipi.render("🎵 Upgrade Mağazası 🎵", True, (255, 255, 255))
-        self.pencere.blit(baslik, (self.genislik // 2 - baslik.get_width() // 2, 80))
-
-        notaYazi = self.yaziKucuk.render(f"Notalar: {self.oyunVerileri['notalar']}", True, (255, 255, 100))
-        self.pencere.blit(notaYazi, (30, 30))
-
-        # Butonları çiz
-        for i, upgrade in enumerate(self.upgradeListesi):
-            y = self.baslangicY + i * self.aralik
-            self.cizUpgrade(upgrade, y)
-
-        # Bilgi notu
-        info = self.yaziKucuk2.render("ESC ile geri dön", True, (200, 200, 200))
-        self.pencere.blit(info, (self.genislik - 180, self.yukseklik - 40))
-
+        self.ciz()
         return None
 
-    def cizUpgrade(self, upgrade, y):
-        fare = pygame.mouse.get_pos()
-        buton = pygame.Rect(self.genislik // 2 - self.butongen // 2, y, self.butongen, self.butonyuk)
-        renk = (80, 80, 120) if buton.collidepoint(fare) else (60, 60, 90)
-        pygame.draw.rect(self.pencere, renk, buton, border_radius=15)
+    # --------------------------------------------------------
+    # ÇİZİM
+    # --------------------------------------------------------
+    def ciz(self):
+        # Blur arka plan
+        ekran_kopya = pygame.Surface((self.GENISLIK, self.YUKSEKLIK))
+        ekran_kopya.blit(self.pencere, (0, 0))
+        blur = pygame.transform.smoothscale(ekran_kopya, (self.GENISLIK // 8, self.YUKSEKLIK // 8))
+        blur = pygame.transform.smoothscale(blur, (self.GENISLIK, self.YUKSEKLIK))
+        blur.set_alpha(self.alpha)
+        self.pencere.blit(blur, (0, 0))
 
-        isim = upgrade["isim"]
-        fiyat = upgrade["fiyat"]
-        alindi = upgrade.get("alindi", False)
-        yazi = f"{isim} - {fiyat} Nota"
-        if alindi and not upgrade.get("tekrarAlinabilir", False):
-            yazi += " ✅"
+        # Menü paneli
+        pygame.draw.rect(self.pencere, (30, 30, 50), self.menuRect, border_radius=20)
+        pygame.draw.rect(self.pencere, (120, 120, 200), self.menuRect, 3, border_radius=20)
 
-        metin = self.yaziKucuk.render(yazi, True, (255, 255, 255))
-        self.pencere.blit(metin, (buton.x + 20, buton.y + 18))
+        # Başlık
+        baslik = self.fontBaslik.render("Yükseltmeler", True, (255, 255, 255))
+        self.pencere.blit(baslik, (self.menuRect.centerx - baslik.get_width() // 2, self.menuRect.y + 30))
 
-        upgrade["rect"] = buton
+        # Notalar göstergesi
+        notaYazi = self.fontKucuk.render(f"Toplam Notalar: {self.oyunVerileri['notalar']}", True, (255, 255, 0))
+        self.pencere.blit(notaYazi, (self.menuRect.centerx - notaYazi.get_width() // 2, self.menuRect.y + 100))
 
-    def satinAl(self, upgrade):
-        # Para kontrolü
-        if self.oyunVerileri["notalar"] < upgrade["fiyat"]:
-            # yetersiz bakiye — istersen ses/effect ekle
-            return
+        # İçerik alanı (scroll alanı)
+        clip_rect = pygame.Rect(
+            self.menuRect.x,
+            self.menuRect.y + 150,
+            self.menuRect.width,
+            self.menuRect.height - 170
+        )
+        self.pencere.set_clip(clip_rect)
 
-        # Tek seferlik alındıysa tekrar alınamaz
-        if upgrade.get("alindi", False) and not upgrade.get("tekrarAlinabilir", False):
-            return
+        # Butonlar (scroll offset eklenmiş)
+        self.upgradeRectList = []
+        start_y = self.menuRect.y + 160 + self.scroll_offset
 
-        # Ödeme
-        self.oyunVerileri["notalar"] -= upgrade["fiyat"]
+        for i, u in enumerate(self.upgrades):
+            rect = pygame.Rect(self.menuRect.x + 80, start_y + i * 160, self.menuRect.width - 160, 120)
 
-        # Etki
-        kod = upgrade.get("kod", "")
-        if kod == "tikGucu":
-            # tıklama gücünü arttır, fiyatı %30 artır
-            self.oyunVerileri["tiklamaGucu"] += upgrade["artis"]
-            upgrade["fiyat"] = int(upgrade["fiyat"] * 1.3)
-        elif kod in ("gitar", "davul"):
-            # tek seferlik capibara ekle ve tıklama gücünü arttır
-            self.oyunVerileri["capibaraSayisi"] += 1
-            self.oyunVerileri["tiklamaGucu"] += upgrade["artis"]
-            upgrade["alindi"] = True
-        elif kod.startswith("dekor"):
-            # dekorlar tıklama kazancına etki edebilir
-            self.oyunVerileri["tiklamaGucu"] += int(upgrade.get("artis", 0) / 10)  # örnek uygulama
-            upgrade["alindi"] = True
+            # Menü sınırları dışında kalanları çizme
+            if rect.bottom < clip_rect.top or rect.top > clip_rect.bottom:
+                continue
+
+            yetiyor_mu = self.oyunVerileri["notalar"] >= u["fiyat"]
+            renk = (80, 120, 180) if yetiyor_mu else (50, 50, 70)
+
+            pygame.draw.rect(self.pencere, renk, rect, border_radius=10)
+            pygame.draw.rect(self.pencere, (150, 150, 220), rect, 2, border_radius=10)
+
+            # Görsel
+            self.pencere.blit(self.gorseller[i], (rect.x + 15, rect.centery - 60))
+
+            # Yazılar
+            isimYazi = self.fontKucuk.render(u["isim"], True, (255, 255, 255))
+            fiyatYazi = self.fontKucuk.render(f"{u['fiyat']} nota", True, (255, 255, 0))
+            carpimYazi = self.fontKucuk.render(f"x{u['carpan']} üretim", True, (180, 255, 180))
+
+            self.pencere.blit(isimYazi, (rect.x + 160, rect.y + 15))
+            self.pencere.blit(fiyatYazi, (rect.x + 160, rect.y + 55))
+            self.pencere.blit(carpimYazi, (rect.x + 160, rect.y + 90))
+
+            self.upgradeRectList.append((rect, u, yetiyor_mu))
+
+        self.pencere.set_clip(None)  # clipping'i sıfırla
+
+        # Kapat butonu
+        pygame.draw.rect(self.pencere, (180, 80, 80), self.kapat_buton, border_radius=6)
+        x_yazi = self.fontKucuk.render("X", True, (255, 255, 255))
+        self.pencere.blit(
+            x_yazi,
+            (self.kapat_buton.centerx - x_yazi.get_width() // 2,
+             self.kapat_buton.centery - x_yazi.get_height() // 2)
+        )
+
+    # --------------------------------------------------------
+    # SATIN ALMA
+    # --------------------------------------------------------
+    def upgradeTiklama(self, mousePos):
+        for rect, upgrade, yetiyor_mu in self.upgradeRectList:
+            if rect.collidepoint(mousePos) and yetiyor_mu:
+                self.oyunVerileri["notalar"] -= upgrade["fiyat"]
+                self.oyunVerileri["tiklamaGucu"] *= upgrade["carpan"]
+                print(f"{upgrade['isim']} satın alındı! Yeni güç: {self.oyunVerileri['tiklamaGucu']}")
