@@ -8,7 +8,7 @@ from oyun.upgrade import UpgradeEkrani
 from oyun.kayanMetin import KayanMetin  # eğer kullanıyorsan
 
 pygame.init()
-
+#--- Branch commit denemesi için atılan commit
 # --- Pencere ayarları ---
 GENISLIK, YUKSEKLIK = 1280, 720
 pencere = pygame.display.set_mode((GENISLIK, YUKSEKLIK))
