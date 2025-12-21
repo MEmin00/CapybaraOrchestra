@@ -1,6 +1,8 @@
 import pygame
 from oyun.arayuz import Buton
 
+import os
+
 class AnaMenu:
     def __init__(self, pencere, genislik, yukseklik, oyunVerileri):
         self.pencere = pencere
@@ -8,22 +10,50 @@ class AnaMenu:
         self.yukseklik = yukseklik
         self.oyunVerileri = oyunVerileri
 
+        # Görsel yollar
+        base_path = os.path.dirname(os.path.dirname(__file__))
+        self.arkaplanYolu = os.path.join(base_path, "varliklar", "capibaralar", "giris.png")
+
+        # Arkaplan Resmi Yükle
+        try:
+            self.arkaplanResmi = pygame.image.load(self.arkaplanYolu).convert()
+            self.arkaplanResmi = pygame.transform.scale(self.arkaplanResmi, (genislik, yukseklik))
+            print("AnaMenu: Arkaplan yüklendi.")
+        except Exception as e:
+            print("AnaMenu: Arkaplan yüklenemedi, renk kullanılacak:", e)
+            self.arkaplanResmi = None
+
         # Renkler
         self.renkArkaPlan = (30, 30, 40)
         self.renkBaslik = (255, 255, 255)
 
         # Font
         self.yaziTipi = pygame.font.SysFont("arial", 64)
-        self.baslikYazisi = self.yaziTipi.render("Capybara Konseri 🎶", True, self.renkBaslik)
+        self.baslikYazisi = self.yaziTipi.render("Capybara Orchestra", True, self.renkBaslik)
+
+        # Buton Görseli
+        self.butonResmi = None
+        butonYolu = os.path.join(base_path, "varliklar", "capibaralar", "buton.png")
+        if os.path.exists(butonYolu):
+            try:
+                self.butonResmi = pygame.image.load(butonYolu).convert_alpha()
+            except Exception as e:
+                print("AnaMenu: Buton görseli yüklenemedi:", e)
 
         # Butonlar
-        self.butBasla = Buton("Başla", genislik // 2 - 100, 300, 200, 60)
-        self.butCikis = Buton("Çıkış", genislik // 2 - 100, 400, 200, 60)
+        self.butBasla = Buton("Başla", genislik // 2 - 100, 300, 200, 60, resim=self.butonResmi)
+        self.butCikis = Buton("Çıkış", genislik // 2 - 100, 400, 200, 60, resim=self.butonResmi)
 
     def guncelle(self, events):
         # Çizimler
-        self.pencere.fill(self.renkArkaPlan)
-        self.pencere.blit(self.baslikYazisi, (self.genislik // 2 - self.baslikYazisi.get_width() // 2, 150))
+        if self.arkaplanResmi:
+            self.pencere.blit(self.arkaplanResmi, (0, 0))
+        else:
+            self.pencere.fill(self.renkArkaPlan)
+        
+        # Başlık pozisyonu (Görsel varsa belki biraz yukarı taşımak gerekebilir)
+        # İSTEK: Başlık görselde yazılı olduğu için text çizimi kaldırıldı.
+        # self.pencere.blit(self.baslikYazisi, (self.genislik // 2 - self.baslikYazisi.get_width() // 2, 100))
 
         # Buton kontrolü (arayuz.Butons kullanan cizVeKontrol artık sadece çiziyor, 
         # tıklamaları burada events ile kontrol ediyoruz)

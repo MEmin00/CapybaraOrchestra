@@ -1,21 +1,37 @@
 import pygame
 
 class Buton:
-    def __init__(self, yazi, x, y, genislik, yukseklik):
+    def __init__(self, yazi, x, y, genislik, yukseklik, resim=None):
         self.yazi = yazi
         self.rect = pygame.Rect(x, y, genislik, yukseklik)
         self.renkNormal = (100, 100, 200)
         self.renkUzerinde = (150, 150, 250)
-        self.yaziTipi = pygame.font.SysFont("arial", 32)
+        # İSTEK: Palatino Linotype fontu
+        self.yaziTipi = pygame.font.SysFont("Palatino Linotype", 32, bold=True)
+        self.resim = None
+        if resim:
+            self.resim = pygame.transform.scale(resim, (genislik, yukseklik))
 
     def cizVeKontrol(self, pencere):
         farePos = pygame.mouse.get_pos()
-        # Buton rengi seçimi - sadece çizim yapar, tıklama kontrolü main loop'ta yapılır
-        renk = self.renkUzerinde if self.rect.collidepoint(farePos) else self.renkNormal
-        pygame.draw.rect(pencere, renk, self.rect, border_radius=12)
+        uzerinde = self.rect.collidepoint(farePos)
+        
+        if self.resim:
+            pencere.blit(self.resim, self.rect)
+            # Hover efekti için hafif bir parlaklık veya overlay eklenebilir
+            if uzerinde:
+                overlay = pygame.Surface(self.rect.size, pygame.SRCALPHA)
+                overlay.fill((255, 255, 255, 50)) # Hafif beyaz katman
+                pencere.blit(overlay, self.rect)
+        else:
+            # Buton rengi seçimi - sadece çizim yapar, tıklama kontrolü main loop'ta yapılır
+            renk = self.renkUzerinde if uzerinde else self.renkNormal
+            pygame.draw.rect(pencere, renk, self.rect, border_radius=12)
 
         # Yazı
-        yaziRender = self.yaziTipi.render(self.yazi, True, (255, 255, 255))
+        # İSTEK: Yazı rengi #d90c2c -> (217, 12, 44)
+        renkYazi = (217, 12, 44)
+        yaziRender = self.yaziTipi.render(self.yazi, True, renkYazi)
         pencere.blit(
             yaziRender,
             (self.rect.centerx - yaziRender.get_width() // 2, self.rect.centery - yaziRender.get_height() // 2)

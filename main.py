@@ -12,7 +12,7 @@ pygame.init()
 # --- Pencere ayarları ---
 GENISLIK, YUKSEKLIK = 1280, 720
 pencere = pygame.display.set_mode((GENISLIK, YUKSEKLIK))
-pygame.display.set_caption("Capybara Konseri 🎶")
+pygame.display.set_caption("Capybara Orchestra")
 
 saat = pygame.time.Clock()
 FPS = 60
@@ -24,6 +24,18 @@ oyunVerileri = {
     "capibaraSayisi": 1,
     # sahne artık son tıklama zamanını tutacak:
     "sonTiklamaZamani": 0.0,
+    "upgrades": [
+        # 1. FLÜT - Resim: Sağ ön
+        {"isim": "Flütçü Capibara", "fiyat": 500, "resim": "varliklar/capibaralar/flute.png", "aktif_resim": "varliklar/capibaralar/flute1.png", "ses": "varliklar/ses/flute.mp3", "carpan": 4, "alinan": False},
+        # 3. ORGE (Klavye) - Resim: Sağ en köşe
+        {"isim": "Orgcu Capibara", "fiyat": 3000, "resim": "varliklar/capibaralar/klavye.png", "aktif_resim": "varliklar/capibaralar/klavye1.png", "ses": "varliklar/ses/org.mp3", "carpan": 8, "alinan": False},
+        # 4. BATERİ - Resim: Sol köşe
+        {"isim": "Baterist Capibara", "fiyat": 15000, "resim": "varliklar/capibaralar/bateri.png", "aktif_resim": "varliklar/capibaralar/bateri1.png", "ses": "varliklar/ses/bateri.mp3", "carpan": 15, "alinan": False},
+        # 5. CRASH - Resim: Sol ön (Bateri yanı)
+        {"isim": "Crash Capibara", "fiyat": 75000, "resim": "varliklar/capibaralar/crash.png", "aktif_resim": "varliklar/capibaralar/crash1.png", "ses": "varliklar/ses/crash.mp3", "carpan": 30, "alinan": False},
+        # 6. KORO - Resim: Arka orta
+        {"isim": "Koro Capibara", "fiyat": 300000, "resim": "varliklar/capibaralar/koro.png", "aktif_resim": "varliklar/capibaralar/koro1.png", "ses": "varliklar/ses/koro.mp3", "carpan": 50, "alinan": False},
+    ],
 }
 
 # --- Kayan metin listesi ---
@@ -73,6 +85,7 @@ while calisiyor:
         yeniEkran = sahne.guncelle(events)
 
     elif aktifEkran == "upgrade":
+        sahne.ciz()  # Arka planda sahne görünsün
         yeniEkran = upgradeEkrani.guncelle(events)
 
     # --- Eğer yeni ekran döndüyse geçiş yap ---
