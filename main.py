@@ -29,8 +29,8 @@ oyunVerileri = {
         {"isim": "Crash Capibara", "fiyat": 1000, "resim": "varliklar/capibaralar/crash.png", "aktif_resim": "varliklar/capibaralar/crash1.png", "ses": "varliklar/ses/crash.mp3", "carpan": 4, "alinan": False},
         # 2. ORGE (Klavye) - Resim: Sağ en köşe
         {"isim": "Orgcu Capibara", "fiyat": 5000, "resim": "varliklar/capibaralar/klavye.png", "aktif_resim": "varliklar/capibaralar/klavye1.png", "ses": "varliklar/ses/org.mp3", "carpan": 10, "alinan": False},
-        # 3. KEMAN - Resim: Sağ ön
-        {"isim": "Kemancı Capibara", "fiyat": 20000, "resim": "varliklar/capibaralar/keman.png", "aktif_resim": "varliklar/capibaralar/keman1.png", "ses": "varliklar/ses/keman.mp3", "carpan": 25, "alinan": False},
+        # 3. KEMAN - Resim: Sağ ön (Geçici görsel flute.png)
+        {"isim": "Kemancı Capibara", "fiyat": 20000, "resim": "varliklar/capibaralar/flute.png", "aktif_resim": "varliklar/capibaralar/flute1.png", "ses": "varliklar/ses/keman.mp3", "carpan": 25, "alinan": False},
         # 4. BATERİ - Resim: Sol köşe
         {"isim": "Baterist Capibara", "fiyat": 75000, "resim": "varliklar/capibaralar/bateri.png", "aktif_resim": "varliklar/capibaralar/bateri1.png", "ses": "varliklar/ses/bateri.mp3", "carpan": 50, "alinan": False},
         # 5. KORO - Resim: Arka orta
