@@ -38,27 +38,24 @@ class Sahne:
         # Fontlar
         self.yaziFont = pygame.font.Font(None, 32)
         self.butonFont = pygame.font.Font(None, 36)
-        # --- MANUEL YAPILANDIRMA (BURAYI DÜZENLEYİN) ---
-        # Her karakterin (X, Y) konumu ve (Genislilik, Yukseklik) boyutu burada belirlenir.
-        # Ekran Boyutu: 1280 x 720
-        # Main.py sırasına göre: 1.Crash, 2.Org, 3.Keman, 4.Bateri, 5.Koro
+
+        
+        # Pos (x,y) Size (genislik,yukseklik)
         self.sahne_ayarlari = {
-            "ana_piyano": {"pos": (559, 346), "size": (220, 238)}, # Siz (Merkez)
+            "ana_piyano": {"pos": (559, 346), "size": (220, 238)},
             "orkestra": [
-                {"isim": "Crash",  "pos": (390, 428),  "size": (140, 154)}, # 1. Sol Ön (Eski Crash yeri)
-                {"isim": "Org",    "pos": (985, 425), "size": (180, 163)}, # 2. Sağ Köşe (Eski Org yeri)
-                {"isim": "Keman",   "pos": (768, 398),  "size": (197, 201)}, # 3. Sağ Ön (Eski Flüt yeri)
-                {"isim": "Bateri", "pos": (180, 409),  "size": (172, 169)}, # 4. Sol Köşe (Eski Bateri yeri)
-                {"isim": "Koro",   "pos": (422, 275),  "size": (431, 262)}, # 5. Arka Orta (Eski Koro yeri)
+                {"isim": "Crash",  "pos": (390, 428),  "size": (140, 154)}, 
+                {"isim": "Org",    "pos": (985, 425), "size": (180, 163)},
+                {"isim": "Keman",   "pos": (768, 398),  "size": (197, 201)},
+                {"isim": "Bateri", "pos": (180, 409),  "size": (172, 169)},
+                {"isim": "Koro",   "pos": (422, 275),  "size": (431, 262)},
             ]
         }
-        # -------------------------------------------------
 
         self.baslikFont = pygame.font.Font(None, 48)
 
         self.capiNormalYolu = os.path.join(base_path, "varliklar", "capibaralar", "piyano.png")
         self.capiTiklamaYolu = os.path.join(base_path, "varliklar", "capibaralar", "piyano1.png")
-        # Eski müzik yolu (artık kullanılmıyor ama referans kalsın derseniz)
         self.muzik_yolu = os.path.join(base_path, "varliklar", "ses", "piyano.mp3")
 
         # Görseller
@@ -71,32 +68,27 @@ class Sahne:
         self.capiResimTiklama = pygame.transform.scale(self.capiResimTiklama, ana_config["size"])
 
         self.capiResim = self.capiResimNormal
-        # Manuel ayar kolaylığı için 'topleft' kullanıyoruz.
         self.capiRect = self.capiResim.get_rect(topleft=ana_config["pos"]) 
 
-        # Orchestra visuals & Audio
+        # Orchestra Ses
         self.upgradeAssets = {}
         for index, u in enumerate(self.oyunVerileri["upgrades"]):
             asset_data = {"img": None, "active_img": None, "sound": None}
             
-            # İlgili konfigürasyonu bul (Sırayla eşleşiyor varsayıyoruz)
-            # Not: main.py listesindeki sıraya göre eşleşir.
-            # 0: Crash, 1: Org, 2: Keman, 3: Bateri, 4: Koro...
-            config = {"size": (150, 150)} # Varsayılan
+            config = {"size": (150, 150)}
             if index < len(self.sahne_ayarlari["orkestra"]):
                 config = self.sahne_ayarlari["orkestra"][index]
 
-            # Görsel
+            # Orkestra Görsel
             try:
                 img = pygame.image.load(u["resim"]).convert_alpha()
                 img = pygame.transform.scale(img, config["size"])
                 asset_data["img"] = img
             except Exception as e:
-                # Seyirci görseli belki de ikon şeklindedir ve sahnede çizilmeyecektir, hata basmasına gerek yok
                 if u["isim"] != "Seyirci":
                     print(f"Sahne: Görsel yüklenemedi {u['resim']}: {e}")
             
-            # Aktif Resim (Söyler hal)
+            # Orkestra Aktif Görsel
             if "aktif_resim" in u:
                 try:
                     img_active = pygame.image.load(u["aktif_resim"]).convert_alpha()
@@ -118,15 +110,11 @@ class Sahne:
                     except Exception as e:
                         print(f"Sahne: Ses yüklenemedi {ses_yolu}: {e}")
                 else:
-                    # Dosya yoksa sessizce geç
                     pass
             
             self.upgradeAssets[u["isim"]] = asset_data
 
-        # Tıklanabilir alanlar listesi (Orkestra üyeleri için)
         self.orkestraRects = []
-
-        # Sahne Pozisyonları (Konfigürasyondan al)
         self.sahne_pozisyonlari = [item["pos"] for item in self.sahne_ayarlari["orkestra"]]
 
         # Upgrade butonu
@@ -138,9 +126,9 @@ class Sahne:
             except Exception as e:
                 print("Sahne: Buton görseli yüklenemedi:", e)
 
-        # self.upgradeRect referansını korumak için butButton.rect kullanacağız ama
-        # eski kodda self.upgradeRect direkt kullanılıyordu.
-        # Kolaylık olsun diye upgrade butonunu oluşturup rect'i ona eşitleyelim.
+        # self.upgradeRect referansını korumak için butButton.rect kullandık ama
+        # eski kodda self.upgradeRecti direkt kullanıyoduk
+        # Kolaylık olsun diye upgrade butonunu oluşturup rect'i ona eşitledim ona göre -berat
         self.butUpgrade = Buton("Upgrade", genislik - 170, 20, 150, 50, resim=self.butonResmi)
         self.upgradeRect = self.butUpgrade.rect
 
@@ -161,7 +149,7 @@ class Sahne:
             except Exception as e:
                 print("Sahne: Piyano sesi yüklenemedi:", e)
         
-        # Seyirci (Hepsi) Sesi
+        # Son Upgrade Sesi
         self.hepsiSesi = None
         hepsi_ses_yolu = os.path.join(base_path, "varliklar", "ses", "hepsi.mp3")
         if os.path.exists(hepsi_ses_yolu):
@@ -192,11 +180,9 @@ class Sahne:
         if os.path.exists(pauseYolu):
             try:
                 self.pauseResmi = pygame.image.load(pauseYolu).convert_alpha()
-                # Orijinal boyut kalsın
             except Exception as e:
                 print("Sahne: Pause resmi yüklenemedi:", e)
 
-        # Orijinal menü boyutları (Buton konumları bozulmasın diye)
         self.menu_genislik = int(genislik * 0.66)
         self.menu_yukseklik = int(yukseklik * 0.66)
 
@@ -231,10 +217,9 @@ class Sahne:
 
 
     def muzik_baslat(self):
-        # Senkronizasyon için hepsini durdurup tekrar baslat
         self.muzik_durdur()
         
-        # Seyirci upgrade'i alınmış mı kontrol et
+        # Seyirci upgrade kontrol
         seyirci_var = False
         for u in self.oyunVerileri["upgrades"]:
             if u["isim"] == "Seyirci" and u["alinan"]:
@@ -242,10 +227,8 @@ class Sahne:
                 break
         
         if seyirci_var and self.hepsiSesi:
-            # Sadece tekli büyük müziği çal
             self.hepsiSesi.play(loops=-1)
         else:
-            # Eski usül: Piyano + Parçalar
             if self.piyanoSesi:
                  self.piyanoSesi.play(loops=-1)
 
@@ -258,7 +241,6 @@ class Sahne:
         self.muzikCalıyor = True
 
     def muzik_durdur(self):
-        # Tüm sesleri durdur
         pygame.mixer.stop() 
         self.muzikCalıyor = False
 
@@ -278,16 +260,13 @@ class Sahne:
                     self.kayan_metinler.append(KayanMetin("+1M (Hile)", (self.genislik // 2, self.yukseklik // 2)))
 
             if not self.duraklatildi:
-                # Tıklama
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if self.upgradeRect.collidepoint(event.pos):
                         self.muzik_durdur() # Upgrade ekranına geçerken durdur
                         return "upgrade"
 
-                    # Ana Capybara Tıklama
                     tiklanan_orkestra = False
                     
-                    # Orkestra üyelerine tıklama kontrolü
                     for rect, upgrade_isim in self.orkestraRects:
                         if rect.collidepoint(event.pos):
                             tiklanan_orkestra = True
@@ -299,7 +278,6 @@ class Sahne:
                         self.sonTiklamaZamani = simdi
                         self.animasyonBaslamaZamani = simdi
                         
-                        # Ana capybara animasyonu
                         if self.capiRect.collidepoint(event.pos):
                             self.capiResim = self.capiResimTiklama
                         
@@ -309,7 +287,6 @@ class Sahne:
                             self.muzik_baslat()
                         
             else:
-                # Menü mantığı
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if self.sliderTopRect.collidepoint(event.pos):
                         self.surukleniyor = True
@@ -318,16 +295,13 @@ class Sahne:
                 elif event.type == pygame.MOUSEMOTION and getattr(self, "surukleniyor", False):
                     self.sesSeviyesi = max(0, min(1, (event.pos[0] - self.sliderRect.x) / self.sliderRect.width))
                     self.sliderTopRect.x = self.sliderRect.x + int(self.sesSeviyesi * self.sliderRect.width) - 10
-                    # Tüm seslerin volume'unu güncelle
-                    # NOT: Hepsi sesi veya Piyano sesi de set_volume ile güncellenmeli.
-                    # Ancak şimdilik sadece upgradeAssets içindekiler yapılıyor.
-                    # İyileştirme: Hepsini güncelle.
-                    if self.piyanoSesi: self.piyanoSesi.set_volume(self.sesSeviyesi) # type: ignore
-                    if self.hepsiSesi: self.hepsiSesi.set_volume(self.sesSeviyesi)   # type: ignore
+                   
+                    if self.piyanoSesi: self.piyanoSesi.set_volume(self.sesSeviyesi)
+                    if self.hepsiSesi: self.hepsiSesi.set_volume(self.sesSeviyesi)
                     
                     for asset in self.upgradeAssets.values():
                         if asset["sound"]:
-                            asset["sound"].set_volume(self.sesSeviyesi) # type: ignore
+                            asset["sound"].set_volume(self.sesSeviyesi)
 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if self.butDevam.collidepoint(event.pos):
@@ -339,7 +313,7 @@ class Sahne:
                         pygame.quit()
                         sys.exit()
 
-        # Müzik zamanlayıcı (Oto durdurma)
+        # Müzik zamanlayıcı
         if self.muzikCalıyor and (simdi - self.sonTiklamaZamani > 1.5):
             self.muzik_durdur()
 
@@ -358,7 +332,6 @@ class Sahne:
         return None
 
     def ciz(self):
-        # Seyirci upgrade'i alınmışsa arka plan değişir
         seyirci_var = False
         for u in self.oyunVerileri["upgrades"]:
             if u["isim"] == "Seyirci" and u["alinan"]:
@@ -377,54 +350,41 @@ class Sahne:
         notYazi = self.yaziFont.render(f"Notalar: {self.oyunVerileri['notalar']}", True, (255, 255, 255))
         self.pencere.blit(notYazi, (20, 20))
         
-        # --- Orkestra Çizimi (Z-Order Düzenlemesi) ---
+        # Orkestra Çizimi
         self.orkestraRects = [] 
 
-        # 1. KATMAN: Arka Plandakiler (Örn: Koro)
-        # Ana karakterin arkasında kalması gerekenler
+        # 1. katman Arka orkestra
         for i, u in enumerate(self.oyunVerileri["upgrades"]):
             if "Seyirci" in u["isim"]: continue
             if u["alinan"] and "Koro" in u["isim"]:
                 self._upgrade_ciz(i, u)
         
-        # 2. KATMAN: Ana Karakter (Piyano)
+        # 2. katman ana orkestra
         self.pencere.blit(self.capiResim, self.capiRect)
-        # Hata Ayıklama (İsteğe bağlı)
-        # pygame.draw.rect(self.pencere, (255, 0, 0), self.capiRect, 1)
-        
-        # 3. KATMAN: Ön Plandakiler (Diğerleri)
+       
+        # 3. katman öndeki elemanlar
         for i, u in enumerate(self.oyunVerileri["upgrades"]):
             if "Seyirci" in u["isim"]: continue
             if u["alinan"] and "Koro" not in u["isim"]:
                 self._upgrade_ciz(i, u)
         
-        # Upgrade butonu
         self.butUpgrade.cizVeKontrol(self.pencere)
 
-        # Kayan metinler - En üstte
         for metin in self.kayan_metinler:
             metin.ciz(self.pencere)
 
     def _upgrade_ciz(self, i, u):
-        # Yardımcı fonksiyon: Tek bir upgrade'i çizer
         pos_index = i % len(self.sahne_pozisyonlari)
         target_pos = self.sahne_pozisyonlari[pos_index]
         
         asset = self.upgradeAssets.get(u["isim"])
         if asset and asset["img"]:
             draw_img = asset["img"]
-            # Animasyon hızı ana karakterle eşitlensin (Sadece animasyon süresi kadar)
             if self.muzikCalıyor and asset["active_img"]:
                  if time.time() - self.animasyonBaslamaZamani < self.animasyonSuresi:
                     draw_img = asset["active_img"]
             
-            # Sol üst köşeye göre çiz
             r = draw_img.get_rect(topleft=target_pos)
-            
-            # Hover efekti KALDIRILDI (İstek üzerine)
-            # mouse_pos = pygame.mouse.get_pos()
-            # if r.collidepoint(mouse_pos):
-            #    r.y -= 5
             
             self.pencere.blit(draw_img, r)
             self.orkestraRects.append((r, u["isim"]))
@@ -433,7 +393,6 @@ class Sahne:
 
     def cizDuraklatmaMenusu(self):
         if self.pauseResmi:
-            # Resmi merkeze hizala
             img_rect = self.pauseResmi.get_rect(center=self.menuRect.center)
             self.pencere.blit(self.pauseResmi, img_rect)
         else:
@@ -446,9 +405,9 @@ class Sahne:
         # Slider
         topX = self.sliderRect.x + int(self.sesSeviyesi * self.sliderRect.width)
         topY = self.sliderRect.centery
-        # Slider Arkaplanı (Koyu Sarı/Altın)
+        # Slider Arkaplan
         pygame.draw.rect(self.pencere, (180, 140, 20), self.sliderRect, border_radius=10)
-        # Slider Topu (Parlak Sarı #ffca2b)
+        # Slider Top
         pygame.draw.circle(self.pencere, (255, 202, 43), (topX, topY), 9)
 
         sesYazi = self.yaziKucuk.render(f"Ses: %{int(self.sesSeviyesi * 100)}", True, (255, 255, 255))
@@ -460,7 +419,6 @@ class Sahne:
             ("Ana Menüye Dön", self.butAnaMenu),
             ("Çıkış", self.butCikis),
         ]:
-            # İstenen renkler: Arkaplan #cb0035 (203, 0, 53), Çerçeve #ffca2b (255, 202, 43)
             pygame.draw.rect(self.pencere, (203, 0, 53), butonRect, border_radius=10)
             pygame.draw.rect(self.pencere, (255, 202, 43), butonRect, 2, border_radius=10)
             yaziYuzeyi = self.yaziButon.render(yazi, True, (255, 255, 255))

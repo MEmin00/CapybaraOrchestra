@@ -6,7 +6,6 @@ class Buton:
         self.rect = pygame.Rect(x, y, genislik, yukseklik)
         self.renkNormal = (100, 100, 200)
         self.renkUzerinde = (150, 150, 250)
-        # İSTEK: Palatino Linotype fontu
         self.yaziTipi = pygame.font.SysFont("Palatino Linotype", 32, bold=True)
         self.resim = None
         if resim:
@@ -18,18 +17,15 @@ class Buton:
         
         if self.resim:
             pencere.blit(self.resim, self.rect)
-            # Hover efekti için hafif bir parlaklık veya overlay eklenebilir
             if uzerinde:
                 overlay = pygame.Surface(self.rect.size, pygame.SRCALPHA)
-                overlay.fill((255, 255, 255, 50)) # Hafif beyaz katman
+                overlay.fill((255, 255, 255, 50))
                 pencere.blit(overlay, self.rect)
         else:
-            # Buton rengi seçimi - sadece çizim yapar, tıklama kontrolü main loop'ta yapılır
             renk = self.renkUzerinde if uzerinde else self.renkNormal
             pygame.draw.rect(pencere, renk, self.rect, border_radius=12)
 
-        # Yazı
-        # İSTEK: Yazı rengi #d90c2c -> (217, 12, 44)
+        
         renkYazi = (217, 12, 44)
         yaziRender = self.yaziTipi.render(self.yazi, True, renkYazi)
         pencere.blit(

@@ -7,7 +7,7 @@ class KayanMetin:
         self.x, self.y = konum
         self.font = pygame.font.Font(None, 40)
         self.olusturma_zamani = time.time()
-        self.sure = 1.5  # saniye
+        self.sure = 1.5
         self.opaklik = 255
         self.yukselme_hizi = 0.8
         self.bitti = False

@@ -10,17 +10,14 @@ class UpgradeEkrani:
 
         self.alpha = 150
 
-        # Arka plan (şeffaflık için gerek yok artık, overlay olacak)
-        # self.arkaplan... kaldırıldı
-
         # Fontlar
         self.fontBaslik = pygame.font.SysFont("Palatino Linotype", 48, bold=True)
         self.fontKucuk = pygame.font.SysFont("Palatino Linotype", 24, bold=True)
 
-        # Görsel yollar
+        # Görsel yolu
         base_path = os.path.dirname(os.path.dirname(__file__))
 
-        # Pause/Menü Arkaplanı
+        # Menü arkaplanları
         self.pauseResmi = None
         pauseYolu = os.path.join(base_path, "varliklar", "kullaniciArayuzu", "pause.png")
         if os.path.exists(pauseYolu):
@@ -39,12 +36,7 @@ class UpgradeEkrani:
             self.menuYukseklik
         )
 
-        # Upgrade verileri
-        # Upgrade verileri
-        # shared data from main.py
-
-
-        # Görselleri yükle
+        
         self.gorseller = []
         self.gorseller = []
         for u in self.oyunVerileri["upgrades"]:
@@ -56,7 +48,7 @@ class UpgradeEkrani:
                 print(f"Görsel yüklenemedi: {u['resim']}, hata: {e}")
                 self.gorseller.append(pygame.Surface((120, 120)))
 
-        # Tik işareti (alınanlarda gösterilecek)
+        # Tik işareti
         try:
             self.tik = pygame.image.load("varliklar/kullaniciArayuzu/tik.png").convert_alpha()
             self.tik = pygame.transform.scale(self.tik, (40, 40))
@@ -78,7 +70,7 @@ class UpgradeEkrani:
         # Scroll
         self.scroll_offset = 0
         self.scroll_hiz = 40
-        self.scroll_max = 0  # Dinamik hesaplanacak
+        self.scroll_max = 0
 
     # --------------------------------------------------------
     def guncelle(self, events):
@@ -101,12 +93,9 @@ class UpgradeEkrani:
 
     # --------------------------------------------------------
     def ciz(self):
-        # Arka planı silme! (main.py zaten sahneyi çiziyor olacak)
-        # self.pencere.blit(self.arkaplan, (0, 0))
 
         # Menü paneli
         if self.pauseResmi:
-            # Resmi merkeze hizala
             img_rect = self.pauseResmi.get_rect(center=self.menuRect.center)
             self.pencere.blit(self.pauseResmi, img_rect)
         else:
@@ -151,11 +140,11 @@ class UpgradeEkrani:
                 renk = (203, 0, 53)  # Kırmızı
                 cerceve = (255, 202, 43) # Altın
             elif yetiyor_mu:
-                renk = (203, 0, 53)  # Kırmızı
-                cerceve = (255, 202, 43) # Altın
+                renk = (203, 0, 53)  
+                cerceve = (255, 202, 43) 
             else:
-                renk = (203, 0, 53)    # Kırmızı (Her durumda istenen renk)
-                cerceve = (255, 202, 43) # Altın
+                renk = (203, 0, 53)
+                cerceve = (255, 202, 43)
 
             # Hover efekti
             scale = 1.05 if rect.collidepoint(mouse_pos) else 1.0
@@ -181,7 +170,7 @@ class UpgradeEkrani:
             self.pencere.blit(fiyatYazi, (scaled_rect.x + 160, scaled_rect.y + 55))
             self.pencere.blit(carpimYazi, (scaled_rect.x + 160, scaled_rect.y + 90))
 
-            # Eğer alınmışsa tik göster
+            #Alınan tikisii
             if u["alinan"] and self.tik:
                 self.pencere.blit(self.tik, (scaled_rect.right - 50, scaled_rect.y + 10))
                 alindi_yazi = self.fontKucuk.render("Alındı", True, (100, 255, 100))
@@ -194,19 +183,15 @@ class UpgradeEkrani:
         # Scroll bar
         if self.scroll_max > 0:
             bar_alani = pygame.Rect(self.menuRect.right - 25, clip_rect.y, 8, clip_rect.height)
-            # Arkaplan (Koyu Sarı/Altın)
             pygame.draw.rect(self.pencere, (180, 140, 20), bar_alani, border_radius=4)
             oran = abs(self.scroll_offset) / self.scroll_max if self.scroll_max > 0 else 0
             yukseklik = max(40, clip_rect.height * (gorunen_alan / toplam_icerik_yuksekligi))
             top_y = clip_rect.y + (clip_rect.height - yukseklik) * oran
-            # Bar (Parlak Sarı)
             pygame.draw.rect(self.pencere, (255, 202, 43),
                              (bar_alani.x, top_y, bar_alani.width, yukseklik),
                              border_radius=4)
 
-        # Kapat butonu
-        # Kapat butonu
-        # İstenen renkler: Arkaplan #cb0035, Çerçeve #ffca2b
+     
         pygame.draw.rect(self.pencere, (203, 0, 53), self.kapat_buton, border_radius=6)
         pygame.draw.rect(self.pencere, (255, 202, 43), self.kapat_buton, 2, border_radius=6)
         x_yazi = self.fontKucuk.render("X", True, (255, 255, 255))
@@ -221,9 +206,6 @@ class UpgradeEkrani:
         for rect, upgrade, yetiyor_mu in self.upgradeRectList:
             if rect.collidepoint(mousePos) and yetiyor_mu and not upgrade["alinan"]:
                 self.oyunVerileri["notalar"] -= upgrade["fiyat"]
-                
-                # İSTEK: Kümülatif çarpma yerine, sadece en yüksek çarpanı kullan
-                # Eski: self.oyunVerileri["tiklamaGucu"] *= upgrade["carpan"]
                 self.oyunVerileri["tiklamaGucu"] = max(self.oyunVerileri["tiklamaGucu"], upgrade["carpan"])
                 
                 upgrade["alinan"] = True

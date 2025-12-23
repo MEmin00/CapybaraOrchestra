@@ -14,7 +14,7 @@ class AnaMenu:
         base_path = os.path.dirname(os.path.dirname(__file__))
         self.arkaplanYolu = os.path.join(base_path, "varliklar", "capibaralar", "giris.png")
 
-        # Arkaplan Resmi Yükle
+        # Arkaplan Resmi
         try:
             self.arkaplanResmi = pygame.image.load(self.arkaplanYolu).convert()
             self.arkaplanResmi = pygame.transform.scale(self.arkaplanResmi, (genislik, yukseklik))
@@ -31,7 +31,7 @@ class AnaMenu:
         self.yaziTipi = pygame.font.SysFont("arial", 64)
         self.baslikYazisi = self.yaziTipi.render("Capybara Orchestra", True, self.renkBaslik)
 
-        # Buton Görseli
+        # Buton Görsel
         self.butonResmi = None
         butonYolu = os.path.join(base_path, "varliklar", "capibaralar", "buton.png")
         if os.path.exists(butonYolu):
@@ -40,27 +40,20 @@ class AnaMenu:
             except Exception as e:
                 print("AnaMenu: Buton görseli yüklenemedi:", e)
 
-        # Butonlar
+        # Buton
         self.butBasla = Buton("Başla", genislik // 2 - 100, 300, 200, 60, resim=self.butonResmi)
         self.butCikis = Buton("Çıkış", genislik // 2 - 100, 400, 200, 60, resim=self.butonResmi)
 
     def guncelle(self, events):
-        # Çizimler
+        # Çizim
         if self.arkaplanResmi:
             self.pencere.blit(self.arkaplanResmi, (0, 0))
         else:
             self.pencere.fill(self.renkArkaPlan)
-        
-        # Başlık pozisyonu (Görsel varsa belki biraz yukarı taşımak gerekebilir)
-        # İSTEK: Başlık görselde yazılı olduğu için text çizimi kaldırıldı.
-        # self.pencere.blit(self.baslikYazisi, (self.genislik // 2 - self.baslikYazisi.get_width() // 2, 100))
 
-        # Buton kontrolü (arayuz.Butons kullanan cizVeKontrol artık sadece çiziyor, 
-        # tıklamaları burada events ile kontrol ediyoruz)
         baslaTik = self.butBasla.cizVeKontrol(self.pencere)
         cikisTik = self.butCikis.cizVeKontrol(self.pencere)
 
-        # events üzerinden tıklama kontrollerini yap (Buton içinde mouse pressed yerine)
         for olay in events:
             if olay.type == pygame.MOUSEBUTTONDOWN and olay.button == 1:
                 fare = pygame.mouse.get_pos()
@@ -68,6 +61,6 @@ class AnaMenu:
                     return "sahne"
                 if self.butCikis.rect.collidepoint(fare):
                     pygame.quit()
-                    return None  # main loop QUIT event ile çıkacak
+                    return None
 
         return None
