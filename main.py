@@ -25,16 +25,18 @@ oyunVerileri = {
     # sahne artık son tıklama zamanını tutacak:
     "sonTiklamaZamani": 0.0,
     "upgrades": [
-        # 1. FLÜT - Resim: Sağ ön
-        {"isim": "Flütçü Capibara", "fiyat": 500, "resim": "varliklar/capibaralar/flute.png", "aktif_resim": "varliklar/capibaralar/flute1.png", "ses": "varliklar/ses/flute.mp3", "carpan": 4, "alinan": False},
-        # 3. ORGE (Klavye) - Resim: Sağ en köşe
-        {"isim": "Orgcu Capibara", "fiyat": 3000, "resim": "varliklar/capibaralar/klavye.png", "aktif_resim": "varliklar/capibaralar/klavye1.png", "ses": "varliklar/ses/org.mp3", "carpan": 8, "alinan": False},
+        # 1. CRASH - Resim: Sol ön (Bateri yanı)
+        {"isim": "Crash Capibara", "fiyat": 1000, "resim": "varliklar/capibaralar/crash.png", "aktif_resim": "varliklar/capibaralar/crash1.png", "ses": "varliklar/ses/crash.mp3", "carpan": 4, "alinan": False},
+        # 2. ORGE (Klavye) - Resim: Sağ en köşe
+        {"isim": "Orgcu Capibara", "fiyat": 5000, "resim": "varliklar/capibaralar/klavye.png", "aktif_resim": "varliklar/capibaralar/klavye1.png", "ses": "varliklar/ses/org.mp3", "carpan": 10, "alinan": False},
+        # 3. KEMAN - Resim: Sağ ön
+        {"isim": "Kemancı Capibara", "fiyat": 20000, "resim": "varliklar/capibaralar/keman.png", "aktif_resim": "varliklar/capibaralar/keman1.png", "ses": "varliklar/ses/keman.mp3", "carpan": 25, "alinan": False},
         # 4. BATERİ - Resim: Sol köşe
-        {"isim": "Baterist Capibara", "fiyat": 15000, "resim": "varliklar/capibaralar/bateri.png", "aktif_resim": "varliklar/capibaralar/bateri1.png", "ses": "varliklar/ses/bateri.mp3", "carpan": 15, "alinan": False},
-        # 5. CRASH - Resim: Sol ön (Bateri yanı)
-        {"isim": "Crash Capibara", "fiyat": 75000, "resim": "varliklar/capibaralar/crash.png", "aktif_resim": "varliklar/capibaralar/crash1.png", "ses": "varliklar/ses/crash.mp3", "carpan": 30, "alinan": False},
-        # 6. KORO - Resim: Arka orta
-        {"isim": "Koro Capibara", "fiyat": 300000, "resim": "varliklar/capibaralar/koro.png", "aktif_resim": "varliklar/capibaralar/koro1.png", "ses": "varliklar/ses/koro.mp3", "carpan": 50, "alinan": False},
+        {"isim": "Baterist Capibara", "fiyat": 75000, "resim": "varliklar/capibaralar/bateri.png", "aktif_resim": "varliklar/capibaralar/bateri1.png", "ses": "varliklar/ses/bateri.mp3", "carpan": 50, "alinan": False},
+        # 5. KORO - Resim: Arka orta
+        {"isim": "Koro Capibara", "fiyat": 300000, "resim": "varliklar/capibaralar/koro.png", "aktif_resim": "varliklar/capibaralar/koro1.png", "ses": "varliklar/ses/koro.mp3", "carpan": 100, "alinan": False},
+        # 6. SEYİRCİ - Resim: Arkaplan değişimi
+        {"isim": "Seyirci", "fiyat": 1000000, "resim": "varliklar/capibaralar/seyirci.png", "aktif_resim": "varliklar/capibaralar/seyirci.png", "ses": "varliklar/ses/hepsi.mp3", "carpan": 500, "alinan": False},
     ],
 }
 
@@ -48,24 +50,11 @@ upgradeEkrani = UpgradeEkrani(pencere, GENISLIK, YUKSEKLIK, oyunVerileri)
 
 aktifEkran = "anaMenu"  # Başlangıç ekranı
 
-# --- Müzik güvenli başlatma (yükle ama çalma kontrolü main'de olacak) ---
-muzikYolu = "varliklar/ses/flute.mp3"
-muzikYuklu = False
-try:
-    pygame.mixer.init()
-    if os.path.exists(muzikYolu):
-        pygame.mixer.music.load(muzikYolu)
-        pygame.mixer.music.set_volume(0.6)
-        muzikYuklu = True
-    else:
-        print(f"⚠️ Müzik dosyası bulunamadı: {muzikYolu}")
-except Exception as e:
-    print("⚠️ Müzik sistemi başlatılamadı:", e)
-    muzikYuklu = False
+# --- Müzik güvenli başlatma (Main'de artık sadece genel mixer init kalsın, spesifik yükleme sahne'de) ---
+pygame.mixer.init()
 
 # kontrol flag'ları
-muzikCaliyor = False  # main tarafında takip ederiz
-MUSIC_TIMEOUT = 1.5   # tıklama sonrası müzik oynatma süresi (saniye)
+muzikCaliyor = False  # Artık kullanılmıyor ama hata vermemesi için kalsın veya silinsin
 
 calisiyor = True
 while calisiyor:
@@ -90,68 +79,19 @@ while calisiyor:
 
     # --- Eğer yeni ekran döndüyse geçiş yap ---
     if yeniEkran:
-        # geçişten önce müziğe müdahale gerekiyorsa yap
-        if muzikYuklu:
-            # sahne -> upgrade: pause et
-            if aktifEkran == "sahne" and yeniEkran == "upgrade":
-                if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
-                    pygame.mixer.music.pause()
-            # upgrade -> sahne: unpause yerine main kontrolüyle başlat/ devam ettir
-            if aktifEkran == "upgrade" and yeniEkran == "sahne":
-                # eğer müzik halen çalıyor (pause durumundaysa) unpause yap,
-                # ama eğer stoplandıysa main loop başlatma mantığı halleder.
-                try:
-                    if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
-                        pygame.mixer.music.unpause()
-                except:
-                    pass
-            # herhangi bir zamanda ana menüye döndüğünde müziği tamamen durdur
-            if yeniEkran == "anaMenu":
-                try:
-                    if pygame.mixer.get_init():
-                        pygame.mixer.music.stop()
-                        muzikCaliyor = False
-                except:
-                    pass
+        # Ekran geçişlerinde müziği sahne üzerinden durdurabiliriz
+        if aktifEkran == "sahne" and yeniEkran == "upgrade":
+            # Sahne duraklatma mantığı: Sahne içindeki guncelle'de upgrade'e geçerken stoplanıyor zaten
+            pass
+            
+        if yeniEkran == "anaMenu":
+            sahne.muzik_durdur()
 
         aktifEkran = yeniEkran
 
-    # --- MÜZİK ZAMANSI KONTROLÜ (TEK MERKEZ) ---
-    # Sahne aktifken, son tıklama zamanına göre müziği başlat/durdur
-    if aktifEkran == "sahne" and muzikYuklu:
-        simdi = time.time()
-        sonTik = oyunVerileri.get("sonTiklamaZamani", 0.0)
-        # eğer son tıklamaya 1.5 saniyeden az geçtiyse müziği oynat
-        if simdi - sonTik < MUSIC_TIMEOUT:
-            if not muzikCaliyor:
-                try:
-                    # Eğer müzik pause durumundaysa unpause et; değilse play
-                    if pygame.mixer.music.get_pos() > -1 and pygame.mixer.music.get_busy() == False:
-                        # muhtemelen pause edilmiş, unpause
-                        pygame.mixer.music.unpause()
-                    else:
-                        pygame.mixer.music.play(-1)
-                    muzikCaliyor = True
-                except Exception as e:
-                    print("⚠️ Müzik çalarken hata:", e)
-        else:
-            # zaman aşımı olduysa müziği durdur
-            if muzikCaliyor:
-                try:
-                    pygame.mixer.music.stop()
-                except:
-                    pass
-                muzikCaliyor = False
+    # --- ESKİ MÜZİK KODLARI SİLİNDİ (Artık Sahne sınıfı yönetiyor) ---
 
-    # Eğer sahne değilsek (ör. anaMenu veya upgrade) ve müzik çalıyorsa,
-    # main.py daha önceki geçiş mantığı ile pause/stop yapmış olmalı; 
-    # ama ekstra güvenlik:
-    if aktifEkran != "sahne" and muzikCaliyor:
-        try:
-            pygame.mixer.music.pause()
-        except:
-            pass
-        muzikCaliyor = False
+    # --- Çizimleri güncelleme (aktif ekranın kendisi çizer) ---
 
     # --- Çizimleri güncelleme (aktif ekranın kendisi çizer) ---
     pygame.display.flip()
