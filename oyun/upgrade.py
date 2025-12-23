@@ -1,4 +1,5 @@
 import pygame
+import os
 
 class UpgradeEkrani:
     def __init__(self, pencere, GENISLIK, YUKSEKLIK, oyunVerileri):
@@ -9,13 +10,24 @@ class UpgradeEkrani:
 
         self.alpha = 150
 
-        # Arka plan (renkli yüzey)
-        self.arkaplan = pygame.Surface((GENISLIK, YUKSEKLIK))
-        self.arkaplan.fill((20, 20, 40))  # sade koyu mavi ton
+        # Arka plan (şeffaflık için gerek yok artık, overlay olacak)
+        # self.arkaplan... kaldırıldı
 
         # Fontlar
-        self.fontBaslik = pygame.font.Font(None, 64)
-        self.fontKucuk = pygame.font.Font(None, 36)
+        self.fontBaslik = pygame.font.SysFont("Palatino Linotype", 48, bold=True)
+        self.fontKucuk = pygame.font.SysFont("Palatino Linotype", 24, bold=True)
+
+        # Görsel yollar
+        base_path = os.path.dirname(os.path.dirname(__file__))
+
+        # Pause/Menü Arkaplanı
+        self.pauseResmi = None
+        pauseYolu = os.path.join(base_path, "varliklar", "kullaniciArayuzu", "pause.png")
+        if os.path.exists(pauseYolu):
+            try:
+                self.pauseResmi = pygame.image.load(pauseYolu).convert_alpha()
+            except Exception as e:
+                print("Upgrade: Pause resmi yüklenemedi:", e)
 
         # Menü paneli
         self.menuGenislik = int(GENISLIK * 0.66)
@@ -28,18 +40,14 @@ class UpgradeEkrani:
         )
 
         # Upgrade verileri
-        self.upgrades = [
-            {"isim": "Gitarcı Capibara", "fiyat": 1, "resim": "varliklar/capibaralar/gitar.png", "carpan": 2, "alinan": False},
-            {"isim": "Davulcu Capibara", "fiyat": 300, "resim": "varliklar/capibaralar/davul.png", "carpan": 3, "alinan": False},
-            {"isim": "Kemanlı Capibara", "fiyat": 800, "resim": "varliklar/capibaralar/kemancı.png", "carpan": 8, "alinan": False},
-            {"isim": "Trompetçi Capibara", "fiyat": 1200, "resim": "varliklar/capibaralar/trompet.png", "carpan": 10, "alinan": False},
-            {"isim": "Saksafoncu Capibara", "fiyat": 1500, "resim": "varliklar/capibaralar/saksofon.png", "carpan": 15, "alinan": False},
-            {"isim": "DJ Capibara", "fiyat": 2000, "resim": "varliklar/capibaralar/dj.png", "carpan": 25, "alinan": False},
-        ]
+        # Upgrade verileri
+        # shared data from main.py
+
 
         # Görselleri yükle
         self.gorseller = []
-        for u in self.upgrades:
+        self.gorseller = []
+        for u in self.oyunVerileri["upgrades"]:
             try:
                 img = pygame.image.load(u["resim"]).convert_alpha()
                 img = pygame.transform.scale(img, (120, 120))
@@ -93,12 +101,17 @@ class UpgradeEkrani:
 
     # --------------------------------------------------------
     def ciz(self):
-        # Arka plan
-        self.pencere.blit(self.arkaplan, (0, 0))
+        # Arka planı silme! (main.py zaten sahneyi çiziyor olacak)
+        # self.pencere.blit(self.arkaplan, (0, 0))
 
         # Menü paneli
-        pygame.draw.rect(self.pencere, (30, 30, 50), self.menuRect, border_radius=20)
-        pygame.draw.rect(self.pencere, (120, 120, 200), self.menuRect, 3, border_radius=20)
+        if self.pauseResmi:
+            # Resmi merkeze hizala
+            img_rect = self.pauseResmi.get_rect(center=self.menuRect.center)
+            self.pencere.blit(self.pauseResmi, img_rect)
+        else:
+            pygame.draw.rect(self.pencere, (30, 30, 50), self.menuRect, border_radius=20)
+            pygame.draw.rect(self.pencere, (120, 120, 200), self.menuRect, 3, border_radius=20)
 
         # Başlık
         baslik = self.fontBaslik.render("Yükseltmeler", True, (255, 255, 255))
@@ -119,13 +132,14 @@ class UpgradeEkrani:
 
         self.upgradeRectList = []
         start_y = self.menuRect.y + 160 + self.scroll_offset
-        toplam_icerik_yuksekligi = len(self.upgrades) * 160
+        start_y = self.menuRect.y + 160 + self.scroll_offset
+        toplam_icerik_yuksekligi = len(self.oyunVerileri["upgrades"]) * 160
         gorunen_alan = clip_rect.height
         self.scroll_max = max(0, toplam_icerik_yuksekligi - gorunen_alan)
 
         mouse_pos = pygame.mouse.get_pos()
 
-        for i, u in enumerate(self.upgrades):
+        for i, u in enumerate(self.oyunVerileri["upgrades"]):
             rect = pygame.Rect(self.menuRect.x + 80, start_y, self.menuRect.width - 160, 120)
             start_y += 160
             if rect.bottom < clip_rect.top or rect.top > clip_rect.bottom:
@@ -134,12 +148,14 @@ class UpgradeEkrani:
             yetiyor_mu = self.oyunVerileri["notalar"] >= u["fiyat"]
 
             if u["alinan"]:
-                renk = (80, 120, 180)  # Satın alındıysa hep mavi
+                renk = (203, 0, 53)  # Kırmızı
+                cerceve = (255, 202, 43) # Altın
             elif yetiyor_mu:
-                renk = (80, 120, 180)  # Parası yetiyorsa da mavi
+                renk = (203, 0, 53)  # Kırmızı
+                cerceve = (255, 202, 43) # Altın
             else:
-                renk = (50, 50, 70)    # Parası yetmiyorsa gri
-
+                renk = (203, 0, 53)    # Kırmızı (Her durumda istenen renk)
+                cerceve = (255, 202, 43) # Altın
 
             # Hover efekti
             scale = 1.05 if rect.collidepoint(mouse_pos) else 1.0
@@ -151,7 +167,7 @@ class UpgradeEkrani:
             )
 
             pygame.draw.rect(self.pencere, renk, scaled_rect, border_radius=10)
-            pygame.draw.rect(self.pencere, (150, 150, 220), scaled_rect, 2, border_radius=10)
+            pygame.draw.rect(self.pencere, cerceve, scaled_rect, 2, border_radius=10)
 
             # Görsel
             self.pencere.blit(self.gorseller[i], (scaled_rect.x + 15, scaled_rect.centery - 60))
@@ -178,16 +194,21 @@ class UpgradeEkrani:
         # Scroll bar
         if self.scroll_max > 0:
             bar_alani = pygame.Rect(self.menuRect.right - 25, clip_rect.y, 8, clip_rect.height)
-            pygame.draw.rect(self.pencere, (70, 70, 100), bar_alani, border_radius=4)
+            # Arkaplan (Koyu Sarı/Altın)
+            pygame.draw.rect(self.pencere, (180, 140, 20), bar_alani, border_radius=4)
             oran = abs(self.scroll_offset) / self.scroll_max if self.scroll_max > 0 else 0
             yukseklik = max(40, clip_rect.height * (gorunen_alan / toplam_icerik_yuksekligi))
             top_y = clip_rect.y + (clip_rect.height - yukseklik) * oran
-            pygame.draw.rect(self.pencere, (160, 160, 240),
+            # Bar (Parlak Sarı)
+            pygame.draw.rect(self.pencere, (255, 202, 43),
                              (bar_alani.x, top_y, bar_alani.width, yukseklik),
                              border_radius=4)
 
         # Kapat butonu
-        pygame.draw.rect(self.pencere, (180, 80, 80), self.kapat_buton, border_radius=6)
+        # Kapat butonu
+        # İstenen renkler: Arkaplan #cb0035, Çerçeve #ffca2b
+        pygame.draw.rect(self.pencere, (203, 0, 53), self.kapat_buton, border_radius=6)
+        pygame.draw.rect(self.pencere, (255, 202, 43), self.kapat_buton, 2, border_radius=6)
         x_yazi = self.fontKucuk.render("X", True, (255, 255, 255))
         self.pencere.blit(
             x_yazi,
@@ -200,7 +221,11 @@ class UpgradeEkrani:
         for rect, upgrade, yetiyor_mu in self.upgradeRectList:
             if rect.collidepoint(mousePos) and yetiyor_mu and not upgrade["alinan"]:
                 self.oyunVerileri["notalar"] -= upgrade["fiyat"]
-                self.oyunVerileri["tiklamaGucu"] *= upgrade["carpan"]
+                
+                # İSTEK: Kümülatif çarpma yerine, sadece en yüksek çarpanı kullan
+                # Eski: self.oyunVerileri["tiklamaGucu"] *= upgrade["carpan"]
+                self.oyunVerileri["tiklamaGucu"] = max(self.oyunVerileri["tiklamaGucu"], upgrade["carpan"])
+                
                 upgrade["alinan"] = True
                 if self.ses_satinal:
                     self.ses_satinal.play()
