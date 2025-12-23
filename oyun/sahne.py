@@ -41,14 +41,15 @@ class Sahne:
         # --- MANUEL YAPILANDIRMA (BURAYI DÜZENLEYİN) ---
         # Her karakterin (X, Y) konumu ve (Genislilik, Yukseklik) boyutu burada belirlenir.
         # Ekran Boyutu: 1280 x 720
+        # Main.py sırasına göre: 1.Crash, 2.Org, 3.Keman, 4.Bateri, 5.Koro
         self.sahne_ayarlari = {
             "ana_piyano": {"pos": (559, 346), "size": (220, 238)}, # Siz (Merkez)
             "orkestra": [
-                {"isim": "Flüt",   "pos": (768, 398),  "size": (197, 201)}, # Sağ Ön
-                {"isim": "Org",    "pos": (985, 425), "size": (180, 163)}, # Sağ Köşe
-                {"isim": "Bateri", "pos": (180, 409),  "size": (172, 169)}, # Sol Köşe
-                {"isim": "Crash",  "pos": (390, 428),  "size": (172, 169)}, # Sol Ön
-                {"isim": "Koro",   "pos": (422, 275),  "size": (431, 262)}, # Arka Orta
+                {"isim": "Crash",  "pos": (390, 428),  "size": (140, 154)}, # 1. Sol Ön (Eski Crash yeri)
+                {"isim": "Org",    "pos": (985, 425), "size": (180, 163)}, # 2. Sağ Köşe (Eski Org yeri)
+                {"isim": "Keman",   "pos": (768, 398),  "size": (197, 201)}, # 3. Sağ Ön (Eski Flüt yeri)
+                {"isim": "Bateri", "pos": (180, 409),  "size": (172, 169)}, # 4. Sol Köşe (Eski Bateri yeri)
+                {"isim": "Koro",   "pos": (422, 275),  "size": (431, 262)}, # 5. Arka Orta (Eski Koro yeri)
             ]
         }
         # -------------------------------------------------
@@ -80,7 +81,7 @@ class Sahne:
             
             # İlgili konfigürasyonu bul (Sırayla eşleşiyor varsayıyoruz)
             # Not: main.py listesindeki sıraya göre eşleşir.
-            # 0: Flüt, 1: Org, 2: Bateri...
+            # 0: Crash, 1: Org, 2: Keman, 3: Bateri, 4: Koro...
             config = {"size": (150, 150)} # Varsayılan
             if index < len(self.sahne_ayarlari["orkestra"]):
                 config = self.sahne_ayarlari["orkestra"][index]
@@ -91,7 +92,9 @@ class Sahne:
                 img = pygame.transform.scale(img, config["size"])
                 asset_data["img"] = img
             except Exception as e:
-                print(f"Sahne: Görsel yüklenemedi {u['resim']}: {e}")
+                # Seyirci görseli belki de ikon şeklindedir ve sahnede çizilmeyecektir, hata basmasına gerek yok
+                if u["isim"] != "Seyirci":
+                    print(f"Sahne: Görsel yüklenemedi {u['resim']}: {e}")
             
             # Aktif Resim (Söyler hal)
             if "aktif_resim" in u:
@@ -100,7 +103,8 @@ class Sahne:
                     img_active = pygame.transform.scale(img_active, config["size"])
                     asset_data["active_img"] = img_active
                 except Exception as e:
-                    print(f"Sahne: Aktif görsel yüklenemedi {u['aktif_resim']}: {e}")
+                     if u["isim"] != "Seyirci":
+                        print(f"Sahne: Aktif görsel yüklenemedi {u['aktif_resim']}: {e}")
 
             
             # Ses
@@ -144,9 +148,38 @@ class Sahne:
         self.duraklatildi = False
         self.sesSeviyesi = 0.5
         
-        # Müzik init
+    # Müzik init
         pygame.mixer.init()
-        # mixer.music yerine mixer.Channel kullanabiliriz veya doğrudan Sound.play()
+        
+        # Ana Piyano Sesi Yükleme
+        self.piyanoSesi = None
+        piyano_ses_yolu = os.path.join(base_path, "varliklar", "ses", "piano.mp3") 
+        if os.path.exists(piyano_ses_yolu):
+            try:
+                self.piyanoSesi = pygame.mixer.Sound(piyano_ses_yolu)
+                self.piyanoSesi.set_volume(0.6)
+            except Exception as e:
+                print("Sahne: Piyano sesi yüklenemedi:", e)
+        
+        # Seyirci (Hepsi) Sesi
+        self.hepsiSesi = None
+        hepsi_ses_yolu = os.path.join(base_path, "varliklar", "ses", "hepsi.mp3")
+        if os.path.exists(hepsi_ses_yolu):
+            try:
+                self.hepsiSesi = pygame.mixer.Sound(hepsi_ses_yolu)
+                self.hepsiSesi.set_volume(0.7)
+            except Exception as e:
+                print("Sahne: Hepsi (Seyirci) sesi yüklenemedi:", e)
+
+        # Seyirci Arkaplanı
+        self.seyirciResmi = None
+        seyirci_resim_yolu = os.path.join(base_path, "varliklar", "capibaralar", "seyirci.png")
+        if os.path.exists(seyirci_resim_yolu):
+             try:
+                img = pygame.image.load(seyirci_resim_yolu).convert()
+                self.seyirciResmi = pygame.transform.scale(img, (genislik, yukseklik))
+             except Exception as e:
+                print("Sahne: Seyirci resmi yüklenemedi:", e)
         
         self.muzikCalıyor = False
         self.sonTiklamaZamani = 0
@@ -190,7 +223,7 @@ class Sahne:
 
         # Butonlar
         self.butDevam = pygame.Rect(self.menuRect.centerx - 150, self.menuRect.y + 190, 300, 50)
-        self.butKaydet = pygame.Rect(self.menuRect.centerx - 150, self.menuRect.y + 260, 300, 50) # Kaydet butonu geri geldi
+        self.butKaydet = pygame.Rect(self.menuRect.centerx - 150, self.menuRect.y + 260, 300, 50) 
         self.butAnaMenu = pygame.Rect(self.menuRect.centerx - 150, self.menuRect.y + 330, 300, 50)
         self.butCikis = pygame.Rect(self.menuRect.centerx - 150, self.menuRect.y + 400, 300, 50)
 
@@ -198,16 +231,29 @@ class Sahne:
 
 
     def muzik_baslat(self):
-        # Tüm alınan upgradelerin seslerini çal
         # Senkronizasyon için hepsini durdurup tekrar baslat
         self.muzik_durdur()
         
+        # Seyirci upgrade'i alınmış mı kontrol et
+        seyirci_var = False
         for u in self.oyunVerileri["upgrades"]:
-            if u["alinan"]:
-                asset = self.upgradeAssets.get(u["isim"])
-                if asset and asset["sound"]:
-                    # Looplu çal
-                    asset["sound"].play(loops=-1)
+            if u["isim"] == "Seyirci" and u["alinan"]:
+                seyirci_var = True
+                break
+        
+        if seyirci_var and self.hepsiSesi:
+            # Sadece tekli büyük müziği çal
+            self.hepsiSesi.play(loops=-1)
+        else:
+            # Eski usül: Piyano + Parçalar
+            if self.piyanoSesi:
+                 self.piyanoSesi.play(loops=-1)
+
+            for u in self.oyunVerileri["upgrades"]:
+                if u["alinan"]:
+                    asset = self.upgradeAssets.get(u["isim"])
+                    if asset and asset["sound"]:
+                        asset["sound"].play(loops=-1)
         
         self.muzikCalıyor = True
 
@@ -228,8 +274,8 @@ class Sahne:
                     else:
                         pass
                 elif event.key == pygame.K_m:
-                    self.oyunVerileri["notalar"] += 10000
-                    self.kayan_metinler.append(KayanMetin("+10000 (Hile)", (self.genislik // 2, self.yukseklik // 2)))
+                    self.oyunVerileri["notalar"] += 1000000 # Hileyi arttırdım test için
+                    self.kayan_metinler.append(KayanMetin("+1M (Hile)", (self.genislik // 2, self.yukseklik // 2)))
 
             if not self.duraklatildi:
                 # Tıklama
@@ -273,6 +319,12 @@ class Sahne:
                     self.sesSeviyesi = max(0, min(1, (event.pos[0] - self.sliderRect.x) / self.sliderRect.width))
                     self.sliderTopRect.x = self.sliderRect.x + int(self.sesSeviyesi * self.sliderRect.width) - 10
                     # Tüm seslerin volume'unu güncelle
+                    # NOT: Hepsi sesi veya Piyano sesi de set_volume ile güncellenmeli.
+                    # Ancak şimdilik sadece upgradeAssets içindekiler yapılıyor.
+                    # İyileştirme: Hepsini güncelle.
+                    if self.piyanoSesi: self.piyanoSesi.set_volume(self.sesSeviyesi) # type: ignore
+                    if self.hepsiSesi: self.hepsiSesi.set_volume(self.sesSeviyesi)   # type: ignore
+                    
                     for asset in self.upgradeAssets.values():
                         if asset["sound"]:
                             asset["sound"].set_volume(self.sesSeviyesi) # type: ignore
@@ -306,8 +358,17 @@ class Sahne:
         return None
 
     def ciz(self):
-        if self.arkaplanResmi:
-            self.pencere.blit(self.arkaplanResmi, (0, 0))
+        # Seyirci upgrade'i alınmışsa arka plan değişir
+        seyirci_var = False
+        for u in self.oyunVerileri["upgrades"]:
+            if u["isim"] == "Seyirci" and u["alinan"]:
+                seyirci_var = True
+                break
+
+        current_bg = self.seyirciResmi if (seyirci_var and self.seyirciResmi) else self.arkaplanResmi
+
+        if current_bg:
+            self.pencere.blit(current_bg, (0, 0))
         else:
             self.pencere.fill(self.arkaRenk)
 
@@ -322,6 +383,7 @@ class Sahne:
         # 1. KATMAN: Arka Plandakiler (Örn: Koro)
         # Ana karakterin arkasında kalması gerekenler
         for i, u in enumerate(self.oyunVerileri["upgrades"]):
+            if "Seyirci" in u["isim"]: continue
             if u["alinan"] and "Koro" in u["isim"]:
                 self._upgrade_ciz(i, u)
         
@@ -332,6 +394,7 @@ class Sahne:
         
         # 3. KATMAN: Ön Plandakiler (Diğerleri)
         for i, u in enumerate(self.oyunVerileri["upgrades"]):
+            if "Seyirci" in u["isim"]: continue
             if u["alinan"] and "Koro" not in u["isim"]:
                 self._upgrade_ciz(i, u)
         
