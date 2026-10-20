@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Pygame](https://img.shields.io/badge/Pygame-2.5+-green?style=for-the-badge&logo=gamepad&logoColor=white)](https://www.pygame.org/)
 [![Lisans: MIT](https://img.shields.io/badge/Lisans-MIT-yellow.svg?style=for-the-badge)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PR'lar-Açık-brightgreen.svg?style=for-the-badge)](README.md)
+[![PR'lar Açık](https://img.shields.io/badge/PR'lar-Açık-brightgreen.svg?style=for-the-badge)](#-katkıda-bulunma)
 
 [English](README.md) • [Türkçe](README.tr.md)
 
