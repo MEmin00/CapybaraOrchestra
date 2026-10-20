@@ -164,7 +164,12 @@ This project is open-source and licensed under the [MIT License](LICENSE). Feel 
 
 ---
 
-## 👤 Author
+## 👥 Authors & Credits
 
-Developed with ❤️ by **[Mehmet Emin Dereci](https://github.com/MEmin00)**  
+Developed with ❤️ by:
+
+- **[Mehmet Emin Dereci](https://github.com/MEmin00)** — Lead & Development
+- **[Berat Salih Ersoy](https://github.com/beratersoy0)** — Development
+- **[Tugay Arıcan](https://github.com/tugayarican)** — Music & Audio Design / Development
+
 *Contributions, stars ⭐, and feedback are always appreciated!*

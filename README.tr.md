@@ -164,7 +164,12 @@ Bu proje [MIT Lisansı](LICENSE) kapsamında açık kaynak olarak sunulmuştur. 
 
 ---
 
-## 👤 Geliştirici
+## 👥 Geliştiriciler & Emeği Geçenler
 
-**[Mehmet Emin Dereci](https://github.com/MEmin00)** tarafından sevgiyle geliştirildi.  
+Sevgiyle geliştirenler:
+
+- **[Mehmet Emin Dereci](https://github.com/MEmin00)** — Geliştirme
+- **[Berat Salih Ersoy](https://github.com/beratersoy0)** — Geliştirme
+- **[Tugay Arıcan](https://github.com/tugayarican)** — Müzikler & Ses Tasarımı / Geliştirme
+
 *Yıldız ⭐ vermeyi ve fikirlerinizi paylaşmayı unutmayın!*
